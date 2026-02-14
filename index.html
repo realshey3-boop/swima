@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة SWIMA القانونية</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f8f9fa; --card: #ffffff; --primary: #1a237e; --accent: #c5a059; --text: #212121; --success: #e8f5e9; --error: #ffebee; }
+        body { font-family: 'Amiri', serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: var(--card); width: 100%; max-width: 700px; padding: 25px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); }
+        .header { text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-family: 'Tajawal'; color: var(--primary); margin: 0; font-size: 1.5rem; }
+        .stats { font-family: 'Tajawal'; color: #666; font-size: 0.9rem; margin-bottom: 15px; }
+        .q-title { font-family: 'Tajawal'; color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
+        .q-text { font-size: 1.3rem; line-height: 1.7; margin-bottom: 20px; font-weight: 600; }
+        .option-btn { font-family: 'Amiri'; font-size: 1.1rem; padding: 15px; background: #fff; border: 1px solid #ddd; border-right: 4px solid #ddd; width: 100%; text-align: right; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border-radius: 4px; box-sizing: border-box; }
+        .option-btn:hover { border-color: var(--primary); background: #fcfcfc; }
+        .correct { background: var(--success) !important; border-color: #2e7d32 !important; color: #1b5e20; }
+        .wrong { background: var(--error) !important; border-color: #c62828 !important; color: #b71c1c; }
+        .explanation { display: none; margin-top: 20px; padding: 15px; background: #f1f3f4; border-right: 4px solid var(--primary); line-height: 1.6; font-size: 1.05rem; }
+        .nav-btn { margin-top: 25px; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; font-family: 'Tajawal'; font-size: 1rem; cursor: pointer; border-radius: 4px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="header"><h1>مشروع SWIMA</h1><span>منصة القانون الإداري - الأكاديمية</span></div>
+        <div class="stats">سؤال <span id="curr">1</span> من <span id="total">0</span></div>
+        <div id="quiz-box">
+            <span class="q-title" id="title"></span>
+            <div class="q-text" id="q-text"></div>
+            <div id="options"></div>
+            <div id="exp" class="explanation"></div>
+            <button id="next" class="nav-btn hidden" onclick="nextQ()">السؤال التالي ⬅️</button>
+        </div>
+        <div id="result" class="hidden" style="text-align:center; padding: 40px;">
+            <h2 style="color:var(--primary); font-family:'Tajawal'">انتهت المراجعة</h2>
+            <button class="nav-btn" onclick="location.reload()">إعادة البدء</button>
+        </div>
+    </div>
+    <script>
+        const quizzes = [{"question": "📌 الاستفتاء رقم 01 : \nأي من الأنشطة التالية يُحظر أن تكون موضوعاً لعقد تفويض المرفق العام؟", "options": ["تقديم خدمات النقل العمومي وتوزيع المياه الصالحة للشرب.", "صيانة الإنارة العمومية وتسيير المساحات الخضراء في البلدية.", "تحصيل جباية الإيرادات العامة التي تحمل طابعاً ضريبياً."], "correct_index": 2, "explanation": "يضع المشرع قيداً صارماً يمنع إدراج تحصيل الضرائب أو الجبايات العامة ضمن عقود التفويض. كما يؤكد النص على منع تفويض أي مرفق عام تحتكر الدولة أو أحد أشخاص القانون العام إدارته واستغلاله بصفة حصرية", "id": 1}, {"id": 2, "title": "الكويز الرابع والأربعون\n​", "question": "ما هو السبب القانوني الذي يجعل \"عقد امتياز المرافق العامة\" يُصنف كعقد إداري بامتياز؟", "options": ["​لأنه يقوم على التوافق المطلق بين إرادتين متساويتين في الحقوق والالتزامات كما في القانون المدني.", "​لكونه يتضمن مجموعة من الشروط الاستثنائية وغير المألوفة في القانون الخاص، والتي تمنح الإدارة سلطات واسعة.", "​لأنه يقتصر على تنظيم العلاقة التجارية بين صاحب الامتياز والعمال دون تدخل السلطة العامة.", "​"], "correct_index": 1, "explanation": "يتميز عقد الامتياز بطبيعة إدارية نابعة من وجود \"شروط استثنائية\" تخرج عن المألوف في العقود المدنية والتجارية، مما يمنح السلطة الإدارية المفوِّضة مركزاً قانونياً قوياً في مواجهة المفوَّض له لضمان حماية المصلحة العامة."}, {"id": 3, "question": "📌 📌 الاستفتاء رقم 01\n​\nما هو السبب القانوني الذي يجعل \"عقد امتياز المرافق العامة\" يُصنف كعقد إداري بامتياز؟", "options": ["​لأنه يقوم على التوافق المطلق بين إرادتين متساويتين في الحقوق والالتزامات كما في القانون المدني.", "​لكونه يتضمن مجموعة من الشروط الاستثنائية وغير المألوفة في القانون الخاص، والتي تمنح الإدارة سلطا...", "​لأنه يقتصر على تنظيم العلاقة التجارية بين صاحب الامتياز والعمال دون تدخل السلطة العامة.", "​"], "correct_index": 1, "explanation": "يتميز عقد الامتياز بطبيعة إدارية نابعة من وجود \"شروط استثنائية\" تخرج عن المألوف في العقود المدنية والتجارية، مما يمنح السلطة الإدارية المفوِّضة مركزاً قانونياً قوياً في مواجهة المفوَّض له لضمان حما..."}, {"id": 4, "question": "📌 📌 الاستفتاء رقم 01\n​\nما هو السبب القانوني الذي يجعل \"عقد امتياز المرافق العامة\" يُصنف كعقد إداري بامتياز؟", "options": ["​لأنه يقوم على التوافق المطلق بين إرادتين متساويتين في الحقوق والالتزامات كما في القانون المدني.", "​لكونه يتضمن مجموعة من الشروط الاستثنائية وغير المألوفة في القانون الخاص، والتي تمنح الإدارة سلطات واسعة.", "​لأنه يقتصر على تنظيم العلاقة التجارية بين صاحب الامتياز والعمال دون تدخل السلطة العامة.", "​"], "correct_index": 1, "explanation": "يتميز عقد الامتياز بطبيعة إدارية نابعة من وجود \"شروط استثنائية\" تخرج عن المألوف في العقود المدنية والتجارية، مما يمنح السلطة الإدارية المفوِّضة مركزاً قانونياً قوياً في مواجهة المفوَّض له لضمان حماية المصلحة العامة."}, {"id": 5, "question": "📌 📌 الاستفتاء رقم 01\n​\nما هو السبب القانوني الذي يجعل \"عقد امتياز المرافق العامة\" يُصنف كعقد إداري بامتياز؟", "options": ["​لأنه يقوم على التوافق المطلق بين إرادتين متساويتين في الحقوق والالتزامات كما في القانون المدني.", "​لكونه يتضمن مجموعة من الشروط الاستثنائية وغير المألوفة في القانون الخاص، والتي تمنح الإدارة سلطات واسعة.", "​لأنه يقتصر على تنظيم العلاقة التجارية بين صاحب الامتياز والعمال دون تدخل السلطة العامة.", "​"], "correct_index": 1, "explanation": "يتميز عقد الامتياز بطبيعة إدارية نابعة من وجود \"شروط استثنائية\" تخرج عن المألوف في العقود المدنية والتجارية، مما يمنح السلطة الإدارية المفوِّضة مركزاً قانونياً قوياً في مواجهة المفوَّض له لضمان حماية المصلحة العامة."}, {"id": 6, "question": "📌 📌 الاستفتاء رقم 01\n​\nما هو السبب القانوني الذي يجعل \"عقد امتياز المرافق العامة\" يُصنف كعقد إداري بامتياز؟", "options": ["​لأنه يقوم على التوافق المطلق بين إرادتين متساويتين في الحقوق والالتزامات كما في القانون المدني.", "​لكونه يتضمن مجموعة من الشروط الاستثنائية وغير المألوفة في القانون الخاص، والتي تمنح الإدارة سلطات واسعة.", "​لأنه يقتصر على تنظيم العلاقة التجارية بين صاحب الامتياز والعمال دون تدخل السلطة العامة.", "​"], "correct_index": 1, "explanation": "يتميز عقد الامتياز بطبيعة إدارية نابعة من وجود \"شروط استثنائية\" تخرج عن المألوف في العقود المدنية والتجارية، مما يمنح السلطة الإدارية المفوِّضة مركزاً قانونياً قوياً في مواجهة المفوَّض له لضمان حماية المصلحة العامة."}];
+        let idx = 0;
+        
+        function loadQ() {
+            if(quizzes.length === 0) { document.getElementById('q-text').innerText = "لا توجد أسئلة."; return; }
+            if(idx >= quizzes.length) { document.getElementById('quiz-box').classList.add('hidden'); document.getElementById('result').classList.remove('hidden'); return; }
+            
+            const q = quizzes[idx];
+            document.getElementById('curr').innerText = idx + 1;
+            document.getElementById('total').innerText = quizzes.length;
+            
+            let titleText = "سؤال قانوني";
+            let qBody = q.question;
+            if(q.question.includes('📌')) {
+                const parts = q.question.split('\n');
+                titleText = parts[0].replace('📌','').trim();
+                qBody = parts.slice(1).join('<br>');
+            }
+            document.getElementById('title').innerText = titleText;
+            document.getElementById('q-text').innerHTML = qBody;
+            
+            const optsDiv = document.getElementById('options');
+            optsDiv.innerHTML = "";
+            document.getElementById('exp').style.display = 'none';
+            document.getElementById('next').classList.add('hidden');
+            
+            q.options.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = o;
+                btn.onclick = () => check(btn, i, q.correct_index, q.explanation);
+                optsDiv.appendChild(btn);
+            });
+        }
+        
+        function check(btn, i, cor, exp) {
+            const allBtn = document.querySelectorAll('.option-btn');
+            allBtn.forEach(b => b.disabled = true);
+            
+            if(i === cor) { 
+                btn.classList.add('correct'); 
+                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            } else { 
+                btn.classList.add('wrong'); 
+                allBtn[cor].classList.add('correct');
+                Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            }
+            document.getElementById('exp').innerHTML = "<strong>⚖️ التعليل القانوني:</strong><br>" + exp;
+            document.getElementById('exp').style.display = 'block';
+            document.getElementById('next').classList.remove('hidden');
+        }
+        
+        function nextQ() { idx++; loadQ(); }
+        Telegram.WebApp.ready(); Telegram.WebApp.expand(); Telegram.WebApp.setHeaderColor('#ffffff');
+        loadQ();
+    </script>
+</body>
+</html>
+    
